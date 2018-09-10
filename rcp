@@ -1,0 +1,48 @@
+Bootstrap: debootstrap
+OSVersion: trusty
+MirrorURL: http://us.archive.ubuntu.com/ubuntu/
+
+%post
+	mkdir -p /storage/home
+	mkdir -p /storage/work
+	mkdir -p /gpfs/scratch
+	mkdir -p /gpfs/group
+	mkdir -p /var/spool/torque	
+	
+	apt-get update
+	apt-get install -y software-properties-common
+	add-apt-repository universe
+	add-apt-repository ppa:linuxuprising/java
+	apt-get update
+	apt-get install -y libblas3 libblas-dev liblapack-dev liblapack3	
+	apt-get install -qy debconf-utils 
+	apt-get install -y python-numpy python-biopython
+	echo "oracle-java10-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections 
+	apt-get install -qy oracle-java10-installer 
+	echo $(java -version)
+
+	add-apt-repository 'deb http://cran.rstudio.com/bin/linux/ubuntu trusty/'
+	gpg --keyserver keyserver.ubuntu.com --recv-key E084DAB9
+	gpg -a --export E084DAB9 | apt-key add -
+	apt-get update -y
+	apt-get upgrade -y
+	apt-get install -y r-base
+	apt-get install -y aptitude
+	apt-get install -y libcurl4-openssl-dev
+	apt-get install -y libxml2-dev
+	apt-get install -y time
+	su - -c "R -e \"install.packages('R.utils',dependencies=T)\""
+	su - -c "R -e \"install.packages('RColorBrewer',dependencies=T)\""
+	su - -c "R -e \"install.packages('gplots',dependencies=T)\""
+	su - -c "R -e \"install.packages('ggplot2',dependencies=T)\""
+	su - -c "R -e \"source('https://bioconductor.org/biocLite.R'); biocLite('GenomicRanges')\""
+	su - -c "R -e \"source('https://bioconductor.org/biocLite.R'); biocLite('IRanges')\""
+	su - -c "R -e \"source('https://bioconductor.org/biocLite.R'); biocLite('ShortRead')\""
+	su - -c "R -e \"source('https://bioconductor.org/biocLite.R'); biocLite('DESeq2')\""
+
+	mkdir -p /temp_download
+	cd /temp_download
+	wget -O usearch11.0.667_i86linux32 https://drive5.com/cgi-bin/upload3.py?license=2018090515091526938
+	chmod +x ./usearch11.0.667_i86linux32
+	ln -s ./usearch11.0.667_i86linux32 usearch  
+	export PATH=$PWD/usearch:$PATH
